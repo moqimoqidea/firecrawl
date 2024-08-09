@@ -4,11 +4,13 @@ const ajv = new Ajv(); // Initialize AJV for JSON schema validation
 
 import { generateOpenAICompletions } from "./models";
 import { Document, ExtractorOptions } from "../entities";
+import { Logger } from "../logger";
 
 // Generate completion using OpenAI
 export async function generateCompletions(
   documents: Document[],
-  extractionOptions: ExtractorOptions
+  extractionOptions: ExtractorOptions,
+  mode: "markdown" | "raw-html"
 ): Promise<Document[]> {
   // const schema = zodToJsonSchema(options.schema)
 
@@ -28,6 +30,7 @@ export async function generateCompletions(
             document: document,
             schema: schema,
             prompt: prompt,
+            mode: mode,
           });
           // Validate the JSON output against the schema using AJV
           const validate = ajv.compile(schema);
@@ -42,7 +45,7 @@ export async function generateCompletions(
 
           return completionResult;
         } catch (error) {
-          console.error(`Error generating completions: ${error}`);
+          Logger.error(`Error generating completions: ${error}`);
           throw new Error(`Error generating completions: ${error.message}`);
         }
         default:

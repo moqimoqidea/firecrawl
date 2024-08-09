@@ -42,6 +42,7 @@ describe('WebCrawler', () => {
 
 
     crawler = new WebCrawler({
+      jobId: "TEST",
       initialUrl: initialUrl,
       includes: [],
       excludes: [],
@@ -76,6 +77,7 @@ describe('WebCrawler', () => {
    
 
     crawler = new WebCrawler({
+      jobId: "TEST",
       initialUrl: initialUrl,
       includes: [],
       excludes: [],
@@ -104,6 +106,7 @@ describe('WebCrawler', () => {
   
 
     crawler = new WebCrawler({
+      jobId: "TEST",
       initialUrl: initialUrl,
       includes: [],
       excludes: [],
@@ -133,6 +136,7 @@ describe('WebCrawler', () => {
  
 
     crawler = new WebCrawler({
+      jobId: "TEST",
       initialUrl: initialUrl,
       includes: [],
       excludes: [],
@@ -161,6 +165,7 @@ describe('WebCrawler', () => {
   
     // Setup the crawler with the specific test case options
     const crawler = new WebCrawler({
+      jobId: "TEST",
       initialUrl: initialUrl,
       includes: [],
       excludes: [],
@@ -187,6 +192,40 @@ describe('WebCrawler', () => {
   
     // Check that the backward link is included if allowBackwardCrawling is true
     expect(results.some(r => r.url === 'https://mendable.ai')).toBe(true);
+  });
+
+  it('should respect the limit parameter by not returning more links than specified', async () => {
+    const initialUrl = 'http://example.com';
+    const limit = 2;  // Set a limit for the number of links
+
+    crawler = new WebCrawler({
+      jobId: "TEST",
+      initialUrl: initialUrl,
+      includes: [],
+      excludes: [],
+      limit: limit,  // Apply the limit
+      maxCrawledDepth: 10
+    });
+
+    // Mock sitemap fetching function to return more links than the limit
+    crawler['tryFetchSitemapLinks'] = jest.fn().mockResolvedValue([
+      initialUrl,
+      initialUrl + '/page1',
+      initialUrl + '/page2',
+      initialUrl + '/page3'
+    ]);
+
+    const filteredLinks = crawler['filterLinks'](
+      [initialUrl, initialUrl + '/page1', initialUrl + '/page2', initialUrl + '/page3'],
+      limit,
+      10
+    );
+
+    expect(filteredLinks.length).toBe(limit);  // Check if the number of results respects the limit
+    expect(filteredLinks).toEqual([
+      initialUrl,
+      initialUrl + '/page1'
+    ]);
   });
 });
 

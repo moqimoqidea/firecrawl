@@ -13,10 +13,12 @@ export interface Progress {
 export type PageOptions = {
   onlyMainContent?: boolean;
   includeHtml?: boolean;
+  includeRawHtml?: boolean;
   fallback?: boolean;
   fetchPageContent?: boolean;
   waitFor?: number;
   screenshot?: boolean;
+  fullPageScreenshot?: boolean;
   headers?: Record<string, string>;
   replaceAllPathsWithAbsolutePaths?: boolean;
   parsePDF?: boolean;
@@ -25,7 +27,7 @@ export type PageOptions = {
 };
 
 export type ExtractorOptions = {
-  mode: "markdown" | "llm-extraction";
+  mode: "markdown" | "llm-extraction" | "llm-extraction-from-markdown" | "llm-extraction-from-raw-html";
   extractionPrompt?: string;
   extractionSchema?: Record<string, any>;
 }
@@ -41,8 +43,8 @@ export type SearchOptions = {
 
 export type CrawlerOptions = {
   returnOnlyUrls?: boolean;
-  includes?: string[];
-  excludes?: string[];
+  includes?: string | string[];
+  excludes?: string | string[];
   maxCrawledLinks?: number;
   maxDepth?: number;
   limit?: number;
@@ -51,9 +53,11 @@ export type CrawlerOptions = {
   ignoreSitemap?: boolean;
   mode?: "default" | "fast"; // have a mode of some sort
   allowBackwardCrawling?: boolean;
+  allowExternalContentLinks?: boolean;
 }
 
 export type WebScraperOptions = {
+  jobId: string;
   urls: string[];
   mode: "single_urls" | "sitemap" | "crawl";
   crawlerOptions?: CrawlerOptions;
@@ -73,6 +77,7 @@ export class Document {
   content: string;
   markdown?: string;
   html?: string;
+  rawHtml?: string;
   llm_extraction?: Record<string, any>;
   createdAt?: Date;
   updatedAt?: Date;
@@ -86,7 +91,8 @@ export class Document {
   warning?: string;
 
   index?: number;
-
+  linksOnPage?: string[]; // Add this new field as a separate property
+  
   constructor(data: Partial<Document>) {
     if (!data.content) {
       throw new Error("Missing required fields");
@@ -99,6 +105,7 @@ export class Document {
     this.markdown = data.markdown || "";
     this.childrenLinks = data.childrenLinks || undefined;
     this.provider = data.provider || undefined;
+    this.linksOnPage = data.linksOnPage; // Assign linksOnPage if provided
   }
 }
 
@@ -126,3 +133,12 @@ export interface FireEngineResponse {
   pageError?: string;
 }
 
+
+export interface FireEngineOptions{
+  mobileProxy?: boolean;
+  method?: string;
+  engine?: string;
+  blockMedia?: boolean;
+  blockAds?: boolean;
+  disableJsDom?: boolean;
+}
